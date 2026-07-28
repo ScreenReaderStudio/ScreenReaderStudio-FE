@@ -1,4 +1,4 @@
-const UnsupportedDevice = () => {
+export default function UnsupportedDevice() {
   return (
     <div className="flex h-dvh w-full flex-col items-center justify-center bg-gray-100 p-5 text-center dark:bg-gray-900">
       <div className="max-w-md">
@@ -13,6 +13,4 @@ const UnsupportedDevice = () => {
       </div>
     </div>
   );
-};
-
-export default UnsupportedDevice;
+}

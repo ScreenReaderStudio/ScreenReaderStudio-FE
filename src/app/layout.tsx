@@ -1,8 +1,8 @@
 import localFont from 'next/font/local';
 
-import UnsupportedDevice from '@/components/UnsupportedDevice';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { ToastProvider } from '@/contexts/ToastContext';
+import UnsupportedDevice from '@/components/layout/UnsupportedDevice';
+import { AuthProvider } from '@/modules/auth/AuthProvider';
+import { ToastProvider } from '@/providers/ToastProvider';
 
 import type { Metadata } from 'next';
 import './globals.css';

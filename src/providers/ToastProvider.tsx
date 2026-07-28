@@ -47,7 +47,7 @@ export const useToast = () => {
   return context;
 };
 
-interface ToastProviderProps {
+export interface ToastProviderProps {
   children: ReactNode;
 }
 

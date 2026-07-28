@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 
 import { TabsProvider } from '@/components/ui/Tabs/context';
-import { cn } from '@/utils/cn';
+import { cn } from '@/shared/lib/cn';
 
 interface TabsProps {
   children: ReactNode;

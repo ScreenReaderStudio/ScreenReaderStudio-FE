@@ -3,10 +3,11 @@
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-import Header from '@/components/Header';
-import ResultViewer from '@/components/ResultViewer';
-import { screenReader } from '@/constants/screenReader';
-import { useAnalysisStore } from '@/stores/useAnalysisStore';
+import Header from '@/components/layout/Header';
+import { getSharedAnalysis } from '@/modules/analysis/api/analysisApi';
+import ResultViewer from '@/modules/analysis/components/ResultViewer';
+import { screenReader } from '@/modules/analysis/constants';
+import { useAnalysisStore } from '@/modules/analysis/model/useAnalysisStore';
 
 export default function SharedAnalysisPage() {
   const { id } = useParams();
@@ -27,19 +28,7 @@ export default function SharedAnalysisPage() {
       setError(null);
 
       try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/analysis/${id}`,
-          { signal }
-        );
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(
-            errorData.message || `분석 결과를 불러오는데 실패했습니다. (상태: ${response.status})`
-          );
-        }
-
-        const data = await response.json();
+        const data = await getSharedAnalysis(String(id), signal);
         setAnalysisData({
           analysisResult: data.accessibilityAnalysis,
           screenReaderScript: data.screenReaderScript,

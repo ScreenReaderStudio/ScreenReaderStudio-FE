@@ -2,14 +2,16 @@
 
 import { useRef, useMemo, useEffect, useState } from 'react';
 
-import IssuesList from '@/components/ResultViewer/IssuesList';
-import Placeholder from '@/components/ResultViewer/Placeholder';
-import ScreenReaderScript from '@/components/ResultViewer/ScreenReaderScript';
 import Button from '@/components/ui/Button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
-import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/contexts/ToastContext';
-import { useAnalysisStore } from '@/stores/useAnalysisStore';
+import { useAuth } from '@/modules/auth/AuthProvider';
+import { useToast } from '@/providers/ToastProvider';
+
+import IssuesList from './IssuesList';
+import Placeholder from './Placeholder';
+import ScreenReaderScript from './ScreenReaderScript';
+import { saveAnalysis } from '../../api/analysisApi';
+import { useAnalysisStore } from '../../model/useAnalysisStore';
 
 export default function ResultViewer({ showShareButton = true }: { showShareButton?: boolean }) {
   const { isLoading, analysisResult, pageContent, screenReaderScript, selectedScreenReader } =
@@ -52,28 +54,12 @@ export default function ResultViewer({ showShareButton = true }: { showShareButt
     setIsSaved(false);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/analysis`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          pageContent,
-          accessibilityAnalysis: analysisResult,
-          screenReaderScript,
-          selectedScreenReader,
-        }),
-        credentials: 'include',
+      const { id } = await saveAnalysis({
+        pageContent,
+        accessibilityAnalysis: analysisResult,
+        screenReaderScript,
+        selectedScreenReader,
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.message || `결과 저장에 실패했습니다. (상태: ${response.status})`
-        );
-      }
-
-      const { id } = await response.json();
       const link = `${window.location.origin}/analysis/${id}`;
       setShareableLink(link);
       setIsSaved(true);

@@ -4,9 +4,10 @@ import Script from 'next/script';
 
 import Button from '@/components/ui/Button';
 
+const KAKAO_SDK_URL = 'https://t1.kakaocdn.net/kakao_js_sdk/2.7.5/kakao.min.js';
+
 export default function KakaoLogin() {
-  const KAKAO_SDK_URL = 'https://t1.kakaocdn.net/kakao_js_sdk/2.7.5/kakao.min.js';
-  const KAKAO_JAVASCRIPT_KEY = process.env.NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY;
+  const kakaoJavaScriptKey = process.env.NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY;
 
   function handleLogin() {
     if (window.Kakao?.isInitialized()) {
@@ -27,7 +28,7 @@ export default function KakaoLogin() {
         onLoad={() => {
           if (window.Kakao && !window.Kakao.isInitialized()) {
             try {
-              window.Kakao.init(KAKAO_JAVASCRIPT_KEY);
+              window.Kakao.init(kakaoJavaScriptKey);
             } catch (error) {
               console.error('Failed to initialize Kakao SDK:', error);
             }

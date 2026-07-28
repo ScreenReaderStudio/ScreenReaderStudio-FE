@@ -4,7 +4,9 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 import Button from '@/components/ui/Button';
-import { useAuth } from '@/contexts/AuthContext';
+import { logoutUser } from '@/modules/auth/api/authApi';
+import { useAuth } from '@/modules/auth/AuthProvider';
+import { ApiError } from '@/shared/api/client';
 
 export default function Header() {
   const { isLoggedIn, logout } = useAuth();
@@ -12,22 +14,16 @@ export default function Header() {
 
   async function handleLogout() {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/auth/logout`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        logout();
-        router.push('/');
-        router.refresh();
-      } else {
-        console.error('로그아웃 실패');
-      }
+      await logoutUser();
+      logout();
+      router.push('/');
+      router.refresh();
     } catch (error) {
-      console.error('로그아웃 요청 중 에러 발생:', error);
+      if (error instanceof ApiError) {
+        console.error('로그아웃 실패');
+      } else {
+        console.error('로그아웃 요청 중 에러 발생:', error);
+      }
     }
   }
 

@@ -1,9 +1,9 @@
 import Image from 'next/image';
 
-import AccessibilityAnalyzer from '@/components/AccessibilityAnalyzer';
-import Header from '@/components/Header';
-import ResultViewer from '@/components/ResultViewer';
+import Header from '@/components/layout/Header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
+import AccessibilityAnalyzer from '@/modules/analysis/components/AccessibilityAnalyzer';
+import ResultViewer from '@/modules/analysis/components/ResultViewer';
 
 export default function Home() {
   return (

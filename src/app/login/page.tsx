@@ -1,10 +1,10 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
-import KakaoLogin from '@/components/KakaoLogin';
 import Button from '@/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import Separator from '@/components/ui/Separator';
+import KakaoLogin from '@/modules/auth/components/KakaoLogin';
 
 export default function Login() {
   return (

@@ -2,9 +2,8 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 
-interface User {
-  userId: string;
-}
+import { getCurrentUser } from '@/modules/auth/api/authApi';
+import type { User } from '@/modules/auth/types';
 
 interface AuthContextType {
   user: User | null;
@@ -23,19 +22,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchUser = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/users/me`, {
-        credentials: 'include',
-      });
-
-      if (response.ok) {
-        const userData = await response.json();
-        setUser(userData);
-      } else if (response.status === 401) {
-        setUser(null);
-      } else {
-        console.error(`Failed to fetch user: ${response.status}`);
-        setUser(null);
-      }
+      const userData = await getCurrentUser();
+      setUser(userData);
     } catch {
       setUser(null);
     } finally {

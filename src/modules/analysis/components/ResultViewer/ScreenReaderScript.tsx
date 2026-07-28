@@ -1,6 +1,6 @@
 'use client';
 
-import { useAnalysisStore } from '@/stores/useAnalysisStore';
+import { useAnalysisStore } from '@/modules/analysis/model/useAnalysisStore';
 
 export default function ScreenReaderScript({
   onScriptItemClick,

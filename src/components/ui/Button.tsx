@@ -1,5 +1,5 @@
 import { Slot } from '@/components/ui/Slot';
-import { cn } from '@/utils/cn';
+import { cn } from '@/shared/lib/cn';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'default' | 'secondary' | 'outline' | 'ghost';

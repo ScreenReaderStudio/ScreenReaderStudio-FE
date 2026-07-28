@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-interface InputState {
+export interface InputState {
   code: string;
   url: string;
   setCode: (code: string) => void;

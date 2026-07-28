@@ -3,7 +3,6 @@
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 
-import TabsContextProvider from '@/components/TabsContextProvider';
 import Button from '@/components/ui/Button';
 import {
   Select,
@@ -14,11 +13,12 @@ import {
 } from '@/components/ui/Select';
 import { TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { useTabsContext } from '@/components/ui/Tabs/context';
-import { useToast } from '@/contexts/ToastContext';
-import { useAnalysisStore } from '@/stores/useAnalysisStore';
-import { useInputStore } from '@/stores/useInputStore';
+import TabsContextProvider from '@/modules/analysis/components/TabsContextProvider';
+import { useAnalysisStore } from '@/modules/analysis/model/useAnalysisStore';
+import { useInputStore } from '@/modules/analysis/model/useInputStore';
+import { useToast } from '@/providers/ToastProvider';
 
-const CodeEditor = dynamic(() => import('@/components/CodeEditor'), {
+const CodeEditor = dynamic(() => import('@/modules/analysis/components/CodeEditor'), {
   ssr: false,
 });
 

@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 
-import { useAnalysisStore } from '@/stores/useAnalysisStore';
+import { useAnalysisStore } from '@/modules/analysis/model/useAnalysisStore';
 
 const impactStyles: { [key: string]: { container: string; badge: string; title: string } } = {
   critical: {

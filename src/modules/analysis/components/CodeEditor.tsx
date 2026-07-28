@@ -4,7 +4,7 @@ import { javascript } from '@codemirror/lang-javascript';
 import CodeMirror from '@uiw/react-codemirror';
 import { useEffect, useState } from 'react';
 
-import { useInputStore } from '@/stores/useInputStore';
+import { useInputStore } from '@/modules/analysis/model/useInputStore';
 
 export default function CodeEditor() {
   const code = useInputStore((state) => state.code);

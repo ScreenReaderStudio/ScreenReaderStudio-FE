@@ -3,8 +3,9 @@
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useEffect, Suspense } from 'react';
 
-import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/contexts/ToastContext';
+import { loginWithKakao } from '@/modules/auth/api/authApi';
+import { useAuth } from '@/modules/auth/AuthProvider';
+import { useToast } from '@/providers/ToastProvider';
 
 function KakaoCallbackContent() {
   const searchParams = useSearchParams();
@@ -16,28 +17,13 @@ function KakaoCallbackContent() {
     const code = searchParams.get('code');
 
     if (code) {
+      const authorizationCode = code;
+
       async function sendCodeToBackend() {
         try {
-          const response = await fetch(
-            `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/auth/kakao`,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ code }),
-              credentials: 'include',
-            }
-          );
-
-          if (response.ok) {
-            const { user } = await response.json();
-            login(user);
-            router.replace('/');
-          } else {
-            const errorData = await response.json();
-            throw new Error(errorData.message || '서버에서 오류가 발생했습니다.');
-          }
+          const { user } = await loginWithKakao(authorizationCode);
+          login(user);
+          router.replace('/');
         } catch (error) {
           console.error('카카오 로그인 처리 실패:', error);
           showToast({ message: '로그인에 실패했습니다. 다시 시도해주세요.' });

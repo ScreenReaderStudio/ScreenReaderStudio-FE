@@ -2,11 +2,13 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-import Header from '@/components/Header';
+import Header from '@/components/layout/Header';
+import { ApiError } from '@/shared/api/client';
 
 const mockPush = vi.fn();
 const mockRefresh = vi.fn();
 const mockUseAuth = vi.fn();
+const mockLogoutUser = vi.fn();
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
@@ -15,8 +17,12 @@ vi.mock('next/navigation', () => ({
   }),
 }));
 
-vi.mock('@/contexts/AuthContext', () => ({
+vi.mock('@/modules/auth/AuthProvider', () => ({
   useAuth: () => mockUseAuth(),
+}));
+
+vi.mock('@/modules/auth/api/authApi', () => ({
+  logoutUser: () => mockLogoutUser(),
 }));
 
 describe('Header', () => {
@@ -72,12 +78,7 @@ describe('Header', () => {
       logout: logoutMock,
     });
 
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({}),
-    });
-
-    vi.stubGlobal('fetch', fetchMock);
+    mockLogoutUser.mockResolvedValue(undefined);
 
     render(<Header />);
 
@@ -98,12 +99,7 @@ describe('Header', () => {
       logout: logoutMock,
     });
 
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: false,
-      json: async () => ({}),
-    });
-
-    vi.stubGlobal('fetch', fetchMock);
+    mockLogoutUser.mockRejectedValue(new ApiError('로그아웃 실패', 500));
 
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -130,9 +126,7 @@ describe('Header', () => {
     });
 
     const error = new Error('network error');
-    const fetchMock = vi.fn().mockRejectedValue(error);
-
-    vi.stubGlobal('fetch', fetchMock);
+    mockLogoutUser.mockRejectedValue(error);
 
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 

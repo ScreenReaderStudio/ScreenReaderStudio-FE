@@ -1,4 +1,4 @@
-import { VALIDATION } from '@/types/constants';
+import { VALIDATION } from '@/shared/config/constants';
 
 export function isValidUrl(url: string): boolean {
   if (!url || url.length === 0) return false;

@@ -1,19 +1,10 @@
-export interface ApiResponse<T = unknown> {
-  data?: T;
-  message?: string;
-  success: boolean;
-}
+import type { AxeResults } from 'axe-core';
 
-export interface ApiError {
-  message: string;
-  status: number;
-  code?: string;
-}
+export type ScreenReaderType = 'voiceover' | 'nvda';
 
-export interface User {
-  userId: string;
-  email?: string;
-  name?: string;
+export interface ScreenReaderScriptItem {
+  text: string;
+  selector: string;
 }
 
 export interface AnalysisRequest {
@@ -28,6 +19,13 @@ export interface AnalysisResponse {
   pageContent: string;
 }
 
+export interface AnalysisData {
+  analysisResult: AxeResults | null;
+  screenReaderScript: ScreenReaderScriptItem[] | null;
+  pageContent: string | null;
+  selectedScreenReader: ScreenReaderType;
+}
+
 export interface SaveAnalysisRequest {
   pageContent: string;
   accessibilityAnalysis: AxeResults;
@@ -37,14 +35,9 @@ export interface SaveAnalysisRequest {
 
 export interface SaveAnalysisResponse {
   id: string;
-  shareableLink: string;
+  shareableLink?: string;
 }
 
-export type ScreenReaderType = 'voiceover' | 'nvda';
-
-export interface ScreenReaderScriptItem {
-  text: string;
-  selector: string;
+export interface SharedAnalysisResponse extends AnalysisResponse {
+  selectedScreenReader: ScreenReaderType;
 }
-
-export type AxeResults = import('axe-core').AxeResults;

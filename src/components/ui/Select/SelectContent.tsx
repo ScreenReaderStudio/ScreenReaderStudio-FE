@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 
 import { useSelectContext } from '@/components/ui/Select/context';
-import { cn } from '@/utils/cn';
+import { cn } from '@/shared/lib/cn';
 
 interface SelectContentProps {
   children: ReactNode;
