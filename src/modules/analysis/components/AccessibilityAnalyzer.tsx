@@ -17,6 +17,7 @@ import TabsContextProvider from '@/modules/analysis/components/TabsContextProvid
 import { useAnalysisStore } from '@/modules/analysis/model/useAnalysisStore';
 import { useInputStore } from '@/modules/analysis/model/useInputStore';
 import { useToast } from '@/providers/ToastProvider';
+import { validateAnalysisInput } from '@/shared/lib/validation';
 
 const CodeEditor = dynamic(() => import('@/modules/analysis/components/CodeEditor'), {
   ssr: false,
@@ -31,19 +32,15 @@ function AccessibilityAnalyzerContent() {
   const { showToast } = useToast();
 
   async function handleAnalysisClick() {
-    if (selectedTab === 'code') {
-      if (!code) {
-        showToast({ message: '코드를 입력해주세요.' });
-        return;
-      }
-      await analyze({ htmlContent: code });
-    } else {
-      if (!url) {
-        showToast({ message: 'URL을 입력해주세요.' });
-        return;
-      }
-      await analyze({ url });
+    const input = selectedTab === 'code' ? { htmlContent: code } : { url: url.trim() };
+    const validation = validateAnalysisInput(input);
+
+    if (!validation.isValid) {
+      showToast({ message: validation.error ?? '분석 대상을 확인해주세요.' });
+      return;
     }
+
+    await analyze(input);
   }
 
   return (
@@ -96,6 +93,7 @@ function AccessibilityAnalyzerContent() {
 
       <TabsContent value="url">
         <input
+          aria-label="분석할 웹페이지 URL"
           className="border-input bg-background ring-offset-background file:text-foreground placeholder:text-muted-foreground focus-visible:ring-ring mb-3 flex h-10 w-full rounded-md border border-gray-300 px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:placeholder:text-gray-500"
           placeholder="https://example.com"
           value={url}
@@ -106,7 +104,7 @@ function AccessibilityAnalyzerContent() {
             <div>
               <p className="mb-1 font-medium">URL 분석 안내</p>
               <ul className="space-y-1 text-xs">
-                <li>• 분석에는 다소 시간이 소요될 수 있습니다 (최대 1분 내외)</li>
+                <li>• 분석에는 다소 시간이 소요될 수 있습니다 (최대 2분 내외)</li>
               </ul>
             </div>
           </div>

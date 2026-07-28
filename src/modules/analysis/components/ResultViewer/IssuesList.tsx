@@ -56,7 +56,7 @@ export default function IssuesList({ onNodeClick }: { onNodeClick: (selector: st
     return <p>접근성 이슈를 분석 중입니다...</p>;
   }
   if (error) {
-    return <p className="text-red-600 dark:text-red-400">오류: {error}</p>;
+    return <p className="text-red-600 dark:text-red-400">오류: {error.message}</p>;
   }
   if (!analysisResult || sortedViolations.length === 0) {
     return <p className="text-gray-900 dark:text-gray-100">발견된 접근성 이슈가 없습니다.</p>;

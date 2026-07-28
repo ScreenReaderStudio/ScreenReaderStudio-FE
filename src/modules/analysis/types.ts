@@ -2,6 +2,21 @@ import type { AxeResults } from 'axe-core';
 
 export type ScreenReaderType = 'voiceover' | 'nvda';
 
+export type AnalysisErrorCode =
+  | 'ANALYSIS_CANCELLED'
+  | 'ANALYSIS_TIMEOUT'
+  | 'INVALID_REQUEST'
+  | 'NETWORK_ERROR'
+  | 'RATE_LIMITED'
+  | 'TARGET_ACCESS_DENIED'
+  | 'UNKNOWN_ERROR';
+
+export interface AnalysisError {
+  code: AnalysisErrorCode;
+  message: string;
+  retryable: boolean;
+}
+
 export interface ScreenReaderScriptItem {
   text: string;
   selector: string;

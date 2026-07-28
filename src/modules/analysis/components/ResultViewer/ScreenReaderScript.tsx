@@ -13,7 +13,7 @@ export default function ScreenReaderScript({
     return <p>스크린 리더 대본을 생성 중입니다...</p>;
   }
   if (error) {
-    return <p className="text-red-600 dark:text-red-400">오류: {error}</p>;
+    return <p className="text-red-600 dark:text-red-400">오류: {error.message}</p>;
   }
   if (!screenReaderScript || screenReaderScript.length === 0) {
     return <p className="text-gray-900 dark:text-gray-100">생성된 대본이 없습니다.</p>;

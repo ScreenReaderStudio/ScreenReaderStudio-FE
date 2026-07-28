@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { useAuth } from '@/modules/auth/AuthProvider';
 import { useToast } from '@/providers/ToastProvider';
 
+import AnalysisErrorState from './AnalysisErrorState';
 import IssuesList from './IssuesList';
 import Placeholder from './Placeholder';
 import ScreenReaderScript from './ScreenReaderScript';
@@ -14,8 +15,16 @@ import { saveAnalysis } from '../../api/analysisApi';
 import { useAnalysisStore } from '../../model/useAnalysisStore';
 
 export default function ResultViewer({ showShareButton = true }: { showShareButton?: boolean }) {
-  const { isLoading, analysisResult, pageContent, screenReaderScript, selectedScreenReader } =
-    useAnalysisStore();
+  const {
+    isLoading,
+    error,
+    analysisResult,
+    pageContent,
+    screenReaderScript,
+    selectedScreenReader,
+    cancelAnalysis,
+    retryAnalysis,
+  } = useAnalysisStore();
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [shareableLink, setShareableLink] = useState('');
@@ -107,7 +116,12 @@ export default function ResultViewer({ showShareButton = true }: { showShareButt
 
   if (isLoading && !analysisResult) {
     return (
-      <div className="flex h-[60vh] w-full animate-pulse gap-4">
+      <div
+        aria-busy="true"
+        aria-live="polite"
+        className="relative flex h-[60vh] w-full animate-pulse gap-4"
+      >
+        <span className="sr-only">접근성 분석을 진행하고 있습니다.</span>
         <div className="flex-1 rounded-md border border-gray-300 bg-gray-200 dark:border-gray-700 dark:bg-gray-800"></div>
 
         <div className="w-1/3 space-y-4 rounded-md border border-gray-300 bg-gray-200 p-4 dark:border-gray-700 dark:bg-gray-800">
@@ -124,9 +138,20 @@ export default function ResultViewer({ showShareButton = true }: { showShareButt
             <div className="h-4 w-full rounded-md bg-gray-300 dark:bg-gray-700"></div>
             <div className="h-4 w-3/4 rounded-md bg-gray-300 dark:bg-gray-700"></div>
           </div>
+          <Button
+            onClick={cancelAnalysis}
+            variant="outline"
+            className="relative z-10 bg-white dark:bg-gray-900"
+          >
+            분석 취소
+          </Button>
         </div>
       </div>
     );
+  }
+
+  if (error) {
+    return <AnalysisErrorState error={error} onRetry={retryAnalysis} />;
   }
 
   if (!analysisResult) {

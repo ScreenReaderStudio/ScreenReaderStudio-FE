@@ -8,10 +8,11 @@ import type {
   SharedAnalysisResponse,
 } from '../types';
 
-export function performAnalysis(request: AnalysisRequest) {
+export function performAnalysis(request: AnalysisRequest, signal?: AbortSignal) {
   return apiRequest<AnalysisResponse>('/api/analysis/perform', {
     method: 'POST',
     body: JSON.stringify(request),
+    signal,
   });
 }
 
