@@ -22,6 +22,7 @@
   - [Client](#client)
   - [Server](#server)
   - [Deployment](#deployment)
+- [**📁 Project Structure**](#-project-structure)
 - [**🔥 Motivation**](#-motivation)
 - [**📋 Features**](#-features)
   - [1. 분석 기능](#1-분석-기능)
@@ -81,6 +82,44 @@
 ## Deployment
 
 ![Vercel](https://img.shields.io/badge/vercel-000000?style=for-the-badge&logo=vercel&logoColor=white) ![Railway](https://img.shields.io/badge/railway-0B0D0E?style=for-the-badge&logo=railway&logoColor=white)
+
+# **📁 Project Structure**
+
+프론트엔드는 Next.js App Router를 기반으로 하며, 라우팅과 업무 로직의 책임을 분리하기 위해 도메인 모듈 중심으로 구성했습니다.
+
+```text
+src/
+├── app/                         # 라우트, 레이아웃, 페이지 조합
+├── components/
+│   ├── layout/                  # 여러 페이지에서 사용하는 레이아웃 컴포넌트
+│   └── ui/                      # 도메인에 의존하지 않는 공통 UI
+├── modules/
+│   ├── analysis/
+│   │   ├── api/                 # 분석 실행, 저장, 조회 API
+│   │   ├── components/          # 입력 및 결과 화면
+│   │   ├── model/               # Zustand 상태
+│   │   ├── constants.ts
+│   │   └── types.ts
+│   └── auth/
+│       ├── api/                 # 사용자 조회, 로그인, 로그아웃 API
+│       ├── components/          # 인증 UI
+│       ├── AuthProvider.tsx
+│       └── types.ts
+├── providers/                   # 애플리케이션 전역 Provider
+├── shared/
+│   ├── api/                     # 공통 API 클라이언트
+│   ├── config/                  # 공통 설정과 상수
+│   ├── lib/                     # 범용 유틸리티
+│   └── types/                   # 공통 타입
+└── test/                        # 전역 테스트 설정
+
+public/                           # 이미지와 폰트 등 정적 리소스
+```
+
+- `app`은 URL 구조와 페이지 조합을 담당하며, 구체적인 업무 로직은 각 도메인 모듈에 둡니다.
+- `modules`는 `analysis`, `auth`처럼 서비스의 업무 영역별 API, UI, 상태, 타입을 함께 관리합니다.
+- `components/ui`와 `shared`는 특정 도메인을 알지 못하는 코드만 포함해 재사용 범위를 명확하게 유지합니다.
+- 테스트는 전역 설정을 제외하고 구현 파일과 같은 위치에 배치합니다.
 
 # **🔥 Motivation**
 
