@@ -1,20 +1,18 @@
-import { ReactNode } from 'react';
+'use client';
 
-import { TabsProvider } from '@/components/ui/Tabs/context';
+import { Tabs as TabsPrimitive } from 'radix-ui';
+import { forwardRef } from 'react';
+
 import { cn } from '@/shared/lib/cn';
 
-interface TabsProps {
-  children: ReactNode;
-  className?: string;
-  defaultValue: string;
-}
+type TabsProps = React.ComponentPropsWithoutRef<typeof TabsPrimitive.Root>;
 
-export default function Tabs({ children, className, defaultValue }: TabsProps) {
-  return (
-    <TabsProvider defaultValue={defaultValue}>
-      <div dir="ltr" className={cn(className)}>
-        {children}
-      </div>
-    </TabsProvider>
-  );
-}
+const Tabs = forwardRef<React.ElementRef<typeof TabsPrimitive.Root>, TabsProps>(
+  ({ className, orientation = 'horizontal', ...props }, ref) => (
+    <TabsPrimitive.Root ref={ref} orientation={orientation} className={cn(className)} {...props} />
+  )
+);
+
+Tabs.displayName = TabsPrimitive.Root.displayName;
+
+export default Tabs;

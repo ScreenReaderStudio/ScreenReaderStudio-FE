@@ -40,7 +40,14 @@ export default function KakaoLogin() {
         onClick={handleLogin}
       >
         <div className="flex items-center gap-3">
-          <svg width="18" height="17" viewBox="0 0 18 17" fill="none">
+          <svg
+            aria-hidden="true"
+            focusable="false"
+            width="18"
+            height="17"
+            viewBox="0 0 18 17"
+            fill="none"
+          >
             <path
               fillRule="evenodd"
               clipRule="evenodd"

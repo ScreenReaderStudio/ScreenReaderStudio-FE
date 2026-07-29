@@ -9,6 +9,7 @@ import type { LinkProps } from 'next/link';
 vi.mock('next/image', () => ({
   default: (props: ImageProps) => {
     const { src, alt, width, height, ...restProps } = props;
+    delete restProps.priority;
     const srcString =
       typeof src === 'string'
         ? src

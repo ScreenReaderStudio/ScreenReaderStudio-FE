@@ -1,39 +1,25 @@
-import { ReactNode } from 'react';
+'use client';
 
-import { useTabsContext } from '@/components/ui/Tabs/context';
+import { Tabs as TabsPrimitive } from 'radix-ui';
+import { forwardRef } from 'react';
+
 import { cn } from '@/shared/lib/cn';
 
-interface TabsTriggerProps {
-  children: ReactNode;
-  className?: string;
-  value: string;
-}
+type TabsTriggerProps = React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>;
 
-export default function TabsTrigger({ children, className, value }: TabsTriggerProps) {
-  const { selectedTab, setSelectedTab } = useTabsContext();
-  const isActive = selectedTab === value;
-
-  return (
-    <button
-      type="button"
-      role="tab"
-      aria-selected={isActive}
-      aria-controls={`tabpanel-${value}`}
-      tabIndex={isActive ? 0 : -1}
+const TabsTrigger = forwardRef<React.ElementRef<typeof TabsPrimitive.Trigger>, TabsTriggerProps>(
+  ({ className, ...props }, ref) => (
+    <TabsPrimitive.Trigger
+      ref={ref}
       className={cn(
-        'inline-flex items-center justify-center rounded-sm px-3 py-1.5 text-sm font-medium whitespace-nowrap text-gray-700 transition-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 dark:text-gray-300',
-        isActive ? 'bg-white shadow-sm dark:bg-gray-900 dark:text-gray-100' : '',
+        'inline-flex items-center justify-center rounded-sm px-3 py-1.5 text-sm font-medium whitespace-nowrap text-gray-700 transition-all focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-white data-[state=active]:shadow-sm dark:text-gray-300 dark:focus-visible:ring-gray-100 dark:data-[state=active]:bg-gray-900 dark:data-[state=active]:text-gray-100',
         className
       )}
-      onClick={() => setSelectedTab(value)}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          setSelectedTab(value);
-        }
-      }}
-    >
-      {children}
-    </button>
-  );
-}
+      {...props}
+    />
+  )
+);
+
+TabsTrigger.displayName = TabsPrimitive.Trigger.displayName;
+
+export default TabsTrigger;

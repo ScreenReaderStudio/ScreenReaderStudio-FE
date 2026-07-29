@@ -2,18 +2,10 @@
 
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
+import { useState } from 'react';
 
 import Button from '@/components/ui/Button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/Select';
-import { TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
-import { useTabsContext } from '@/components/ui/Tabs/context';
-import TabsContextProvider from '@/modules/analysis/components/TabsContextProvider';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { useAnalysisStore } from '@/modules/analysis/model/useAnalysisStore';
 import { useInputStore } from '@/modules/analysis/model/useInputStore';
 import { useToast } from '@/providers/ToastProvider';
@@ -24,7 +16,7 @@ const CodeEditor = dynamic(() => import('@/modules/analysis/components/CodeEdito
 });
 
 function AccessibilityAnalyzerContent() {
-  const { selectedTab } = useTabsContext();
+  const [selectedTab, setSelectedTab] = useState('url');
   const code = useInputStore((state) => state.code);
   const url = useInputStore((state) => state.url);
   const setUrl = useInputStore((state) => state.setUrl);
@@ -36,7 +28,10 @@ function AccessibilityAnalyzerContent() {
     const validation = validateAnalysisInput(input);
 
     if (!validation.isValid) {
-      showToast({ message: validation.error ?? '분석 대상을 확인해주세요.' });
+      showToast({
+        message: validation.error ?? '분석 대상을 확인해주세요.',
+        variant: 'alert',
+      });
       return;
     }
 
@@ -44,20 +39,24 @@ function AccessibilityAnalyzerContent() {
   }
 
   return (
-    <>
+    <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
       <div className="mb-3 flex gap-2">
-        <Select
-          defaultValue={selectedScreenReader}
-          onValueChange={(value) => setSelectedScreenReader(value as 'voiceover' | 'nvda')}
-        >
-          <SelectTrigger className="w-60">
-            <SelectValue placeholder="VoiceOver (macOS/iOS)" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="voiceover">VoiceOver (macOS/iOS)</SelectItem>
-            <SelectItem value="nvda">NVDA (Windows)</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="w-60">
+          <label htmlFor="screen-reader" className="sr-only">
+            대본을 생성할 스크린 리더
+          </label>
+          <select
+            id="screen-reader"
+            value={selectedScreenReader}
+            onChange={(event) =>
+              setSelectedScreenReader(event.target.value as 'voiceover' | 'nvda')
+            }
+            className="h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:focus-visible:ring-gray-100"
+          >
+            <option value="voiceover">VoiceOver (macOS/iOS)</option>
+            <option value="nvda">NVDA (Windows)</option>
+          </select>
+        </div>
         <Button
           className="h-10 w-full bg-black text-white"
           onClick={handleAnalysisClick}
@@ -66,27 +65,13 @@ function AccessibilityAnalyzerContent() {
           {isLoading ? '분석 중...' : '분석'}
         </Button>
       </div>
-      <TabsList className="mb-3 grid w-full grid-cols-2">
+      <TabsList aria-label="분석 대상 입력 방식" className="mb-3 grid w-full grid-cols-2">
         <TabsTrigger value="url">
-          <Image
-            src="/globe.svg"
-            alt="URL 아이콘"
-            width={16}
-            height={16}
-            priority
-            className="mr-2"
-          />
+          <Image src="/globe.svg" alt="" width={16} height={16} priority className="mr-2" />
           URL
         </TabsTrigger>
         <TabsTrigger value="code">
-          <Image
-            src="/code.svg"
-            alt="코드 아이콘"
-            width={16}
-            height={16}
-            priority
-            className="mr-2"
-          />
+          <Image src="/code.svg" alt="" width={16} height={16} priority className="mr-2" />
           코드
         </TabsTrigger>
       </TabsList>
@@ -94,7 +79,7 @@ function AccessibilityAnalyzerContent() {
       <TabsContent value="url">
         <input
           aria-label="분석할 웹페이지 URL"
-          className="border-input bg-background ring-offset-background file:text-foreground placeholder:text-muted-foreground focus-visible:ring-ring mb-3 flex h-10 w-full rounded-md border border-gray-300 px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:placeholder:text-gray-500"
+          className="border-input bg-background ring-offset-background file:text-foreground placeholder:text-muted-foreground mb-3 flex h-10 w-full rounded-md border border-gray-300 px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:placeholder:text-gray-500 dark:focus-visible:ring-gray-100"
           placeholder="https://example.com"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
@@ -114,14 +99,10 @@ function AccessibilityAnalyzerContent() {
       <TabsContent value="code">
         <CodeEditor />
       </TabsContent>
-    </>
+    </Tabs>
   );
 }
 
 export default function AccessibilityAnalyzer() {
-  return (
-    <TabsContextProvider className="w-full" defaultValue="url">
-      <AccessibilityAnalyzerContent />
-    </TabsContextProvider>
-  );
+  return <AccessibilityAnalyzerContent />;
 }

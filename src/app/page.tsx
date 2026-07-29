@@ -23,7 +23,7 @@ export default function Home() {
           <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle>
-                <Image src="/folded.svg" alt="분석 대상 아이콘" width={24} height={24} priority />
+                <Image src="/folded.svg" alt="" width={24} height={24} priority />
                 분석 대상 입력
               </CardTitle>
               <CardDescription className="my-3">
@@ -37,7 +37,7 @@ export default function Home() {
           <Card className="lg:col-span-3">
             <CardHeader>
               <CardTitle>
-                <Image src="/eye.svg" alt="결과 아이콘" width={24} height={24} priority />
+                <Image src="/eye.svg" alt="" width={24} height={24} priority />
                 분석 결과
               </CardTitle>
               <CardDescription className="my-3">

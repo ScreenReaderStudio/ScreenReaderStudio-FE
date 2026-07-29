@@ -113,13 +113,17 @@ export default function IssuesList({ onNodeClick }: { onNodeClick: (selector: st
                   }
 
                   return (
-                    <div
+                    <button
+                      type="button"
                       key={nodeIndex}
-                      className="cursor-pointer rounded bg-gray-50 p-2 font-mono text-xs break-all transition-colors hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                      className="w-full rounded bg-gray-50 p-2 text-left font-mono text-xs break-all transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:outline-none dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:focus-visible:ring-gray-100"
                       onClick={() => onNodeClick(selector)}
                     >
+                      <span className="sr-only">
+                        영향 요소 {nodeIndex + 1}, 미리보기에서 강조:{' '}
+                      </span>
                       <code>{node.html}</code>
-                    </div>
+                    </button>
                   );
                 })}
               </div>

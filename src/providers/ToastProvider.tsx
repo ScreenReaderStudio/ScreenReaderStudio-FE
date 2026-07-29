@@ -1,6 +1,16 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode, useCallback, useMemo } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+
+import type { ReactNode } from 'react';
 
 export const TOAST_PLACEMENTS = ['topLeft', 'topRight', 'bottomLeft', 'bottomRight'] as const;
 
@@ -10,12 +20,14 @@ interface ToastType {
   id: number;
   message: string;
   placement: ToastPlacement;
+  variant: 'alert' | 'status';
 }
 
 export interface ToastOptions {
   message: string;
   placement?: ToastPlacement;
-  duration?: number;
+  duration?: number | null;
+  variant?: ToastType['variant'];
 }
 
 export interface ToastContextType {
@@ -53,20 +65,45 @@ export interface ToastProviderProps {
 
 export const ToastProvider = ({ children }: ToastProviderProps) => {
   const [toasts, setToasts] = useState<ToastType[]>([]);
+  const nextToastId = useRef(0);
+  const timeoutIds = useRef(new Map<number, ReturnType<typeof setTimeout>>());
 
   const removeToast = useCallback((id: number) => {
+    const timeoutId = timeoutIds.current.get(id);
+
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      timeoutIds.current.delete(id);
+    }
+
     setToasts((prevToasts) => prevToasts.filter((toast) => toast.id !== id));
   }, []);
 
   const showToast = useCallback(
-    ({ message, placement = 'topRight', duration = 3000 }: ToastOptions) => {
-      const id = Date.now();
-      setToasts((prevToasts) => [...prevToasts, { id, message, placement }]);
+    ({ message, placement = 'topRight', duration, variant = 'status' }: ToastOptions) => {
+      nextToastId.current += 1;
+      const id = nextToastId.current;
+      const effectiveDuration =
+        duration === undefined ? (variant === 'alert' ? null : 5000) : duration;
 
-      setTimeout(() => removeToast(id), duration);
+      setToasts((prevToasts) => [...prevToasts, { id, message, placement, variant }]);
+
+      if (effectiveDuration !== null) {
+        const timeoutId = setTimeout(() => removeToast(id), effectiveDuration);
+        timeoutIds.current.set(id, timeoutId);
+      }
     },
     [removeToast]
   );
+
+  useEffect(() => {
+    const currentTimeoutIds = timeoutIds.current;
+
+    return () => {
+      currentTimeoutIds.forEach(clearTimeout);
+      currentTimeoutIds.clear();
+    };
+  }, []);
 
   const toastsByPlacement = useMemo(() => {
     return toasts.reduce(
@@ -92,12 +129,15 @@ export const ToastProvider = ({ children }: ToastProviderProps) => {
           {placementToasts.map((toast) => (
             <div
               key={toast.id}
+              role={toast.variant}
+              aria-atomic="true"
               className="relative w-fit max-w-[90vw] min-w-40 rounded border border-gray-200 bg-white py-2 pr-8 pl-4 text-gray-800 shadow-md dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
             >
               <p className="font-sans text-sm">{toast.message}</p>
               <button
+                type="button"
                 onClick={() => removeToast(toast.id)}
-                className="absolute top-1/2 right-1.5 -translate-y-1/2 rounded-full p-1 text-lg text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+                className="absolute top-1/2 right-1.5 -translate-y-1/2 rounded-full p-1 text-lg text-gray-500 hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:outline-none dark:text-gray-400 dark:hover:bg-gray-800 dark:focus-visible:ring-gray-100"
                 aria-label="알림 닫기"
               >
                 ×

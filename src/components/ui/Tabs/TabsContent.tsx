@@ -1,29 +1,25 @@
-import { ReactNode } from 'react';
+'use client';
 
-import { useTabsContext } from '@/components/ui/Tabs/context';
+import { Tabs as TabsPrimitive } from 'radix-ui';
+import { forwardRef } from 'react';
+
 import { cn } from '@/shared/lib/cn';
 
-interface TabsContentProps {
-  children: ReactNode;
-  className?: string;
-  value: string;
-}
+type TabsContentProps = React.ComponentPropsWithoutRef<typeof TabsPrimitive.Content>;
 
-export default function TabsContent({ children, className, value }: TabsContentProps) {
-  const { selectedTab } = useTabsContext();
-
-  if (selectedTab !== value) {
-    return null;
-  }
-
-  return (
-    <div
+const TabsContent = forwardRef<React.ElementRef<typeof TabsPrimitive.Content>, TabsContentProps>(
+  ({ className, ...props }, ref) => (
+    <TabsPrimitive.Content
+      ref={ref}
       className={cn(
-        'mt-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
+        'mt-2 focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:outline-none dark:focus-visible:ring-gray-100',
         className
       )}
-    >
-      {children}
-    </div>
-  );
-}
+      {...props}
+    />
+  )
+);
+
+TabsContent.displayName = TabsPrimitive.Content.displayName;
+
+export default TabsContent;

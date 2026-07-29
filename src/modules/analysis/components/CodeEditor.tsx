@@ -30,6 +30,7 @@ export default function CodeEditor() {
   return (
     <div className="rounded-md border border-gray-300 p-1.5 shadow-md dark:border-gray-700">
       <CodeMirror
+        aria-label="분석할 HTML 코드"
         value={code}
         height="300px"
         extensions={[javascript()]}

@@ -53,7 +53,10 @@ export default function ResultViewer({ showShareButton = true }: { showShareButt
 
   async function handleSaveResult() {
     if (!analysisResult || !pageContent || !screenReaderScript) {
-      showToast({ message: '분석할 URL 또는 HTML 콘텐츠가 없습니다. 먼저 분석을 수행해주세요.' });
+      showToast({
+        message: '분석할 URL 또는 HTML 콘텐츠가 없습니다. 먼저 분석을 수행해주세요.',
+        variant: 'alert',
+      });
 
       return;
     }
@@ -74,7 +77,7 @@ export default function ResultViewer({ showShareButton = true }: { showShareButt
       setIsSaved(true);
     } catch (error) {
       const message = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
-      showToast({ message });
+      showToast({ message, variant: 'alert' });
     } finally {
       setIsSaving(false);
     }
@@ -89,7 +92,10 @@ export default function ResultViewer({ showShareButton = true }: { showShareButt
       showToast({ message: '공유 링크가 클립보드에 복사되었습니다.' });
     } catch (error) {
       console.error('클립보드 복사 실패:', error);
-      showToast({ message: '링크 복사에 실패했습니다. 브라우저 설정을 확인해주세요.' });
+      showToast({
+        message: '링크 복사에 실패했습니다. 브라우저 설정을 확인해주세요.',
+        variant: 'alert',
+      });
     }
   }
 
@@ -191,6 +197,7 @@ export default function ResultViewer({ showShareButton = true }: { showShareButt
                 <div className="flex items-center space-x-2">
                   <input
                     type="text"
+                    aria-label="공유 링크"
                     value={shareableLink}
                     readOnly
                     className="flex-grow rounded-md border border-gray-300 bg-gray-100 p-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
@@ -204,7 +211,7 @@ export default function ResultViewer({ showShareButton = true }: { showShareButt
           </div>
         )}
         <Tabs defaultValue="script" className="w-full">
-          <TabsList className="mb-2 grid w-full grid-cols-2">
+          <TabsList aria-label="분석 결과 유형" className="mb-2 grid w-full grid-cols-2">
             <TabsTrigger value="script">스크린 리더 대본</TabsTrigger>
             <TabsTrigger value="issues">접근성 이슈</TabsTrigger>
           </TabsList>

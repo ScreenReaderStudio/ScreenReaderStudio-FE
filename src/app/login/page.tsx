@@ -14,7 +14,7 @@ export default function Login() {
           href="/"
           className="flex items-center gap-2 font-medium text-gray-900 dark:text-gray-100"
         >
-          <Image src="/arrow-left.svg" alt="돌아가기 아이콘" width={16} height={16} priority />
+          <Image src="/arrow-left.svg" alt="" width={16} height={16} priority />
           돌아가기
         </Link>
       </div>
