@@ -2,18 +2,28 @@ import type { AxeResults } from 'axe-core';
 
 export type ScreenReaderType = 'voiceover' | 'nvda';
 
-export type AnalysisErrorCode =
-  | 'ANALYSIS_CANCELLED'
+export type ServerAnalysisErrorCode =
   | 'ANALYSIS_TIMEOUT'
   | 'INVALID_REQUEST'
-  | 'NETWORK_ERROR'
+  | 'INVALID_HTML'
+  | 'INVALID_URL'
   | 'RATE_LIMITED'
   | 'TARGET_ACCESS_DENIED'
+  | 'TARGET_SECURITY_BLOCKED'
+  | 'TARGET_UNREACHABLE'
+  | 'UNSUPPORTED_CONTENT'
+  | 'INTERNAL_ERROR';
+
+export type AnalysisErrorCode =
+  | ServerAnalysisErrorCode
+  | 'ANALYSIS_CANCELLED'
+  | 'NETWORK_ERROR'
   | 'UNKNOWN_ERROR';
 
 export interface AnalysisError {
   code: AnalysisErrorCode;
   message: string;
+  recoveryMessage: string;
   retryable: boolean;
 }
 

@@ -31,6 +31,7 @@ describe('ResultViewer', () => {
       error: {
         code: 'NETWORK_ERROR',
         message: '분석 서버와 통신하지 못했습니다.',
+        recoveryMessage: '네트워크 연결을 확인해주세요.',
         retryable: true,
       },
     });

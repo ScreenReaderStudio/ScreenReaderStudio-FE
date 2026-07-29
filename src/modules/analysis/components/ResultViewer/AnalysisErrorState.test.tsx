@@ -11,6 +11,7 @@ describe('AnalysisErrorState', () => {
         error={{
           code: 'NETWORK_ERROR',
           message: '분석 서버와 통신하지 못했습니다.',
+          recoveryMessage: '네트워크 연결을 확인해주세요.',
           retryable: true,
         }}
         onRetry={vi.fn()}
@@ -30,6 +31,7 @@ describe('AnalysisErrorState', () => {
         error={{
           code: 'ANALYSIS_TIMEOUT',
           message: '분석 제한 시간을 초과했습니다.',
+          recoveryMessage: '잠시 후 다시 시도해주세요.',
           retryable: true,
         }}
         onRetry={onRetry}
@@ -47,6 +49,7 @@ describe('AnalysisErrorState', () => {
         error={{
           code: 'INVALID_REQUEST',
           message: 'URL을 확인해주세요.',
+          recoveryMessage: '입력값을 확인해주세요.',
           retryable: false,
         }}
         onRetry={vi.fn()}
@@ -54,5 +57,21 @@ describe('AnalysisErrorState', () => {
     );
 
     expect(screen.queryByRole('button', { name: '다시 시도' })).not.toBeInTheDocument();
+  });
+
+  it('오류별 복구 방법을 안내한다', () => {
+    render(
+      <AnalysisErrorState
+        error={{
+          code: 'TARGET_SECURITY_BLOCKED',
+          message: '보안 정책에 따라 분석할 수 없습니다.',
+          recoveryMessage: '공개된 HTTP 또는 HTTPS 주소를 입력해주세요.',
+          retryable: false,
+        }}
+        onRetry={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText('공개된 HTTP 또는 HTTPS 주소를 입력해주세요.')).toBeInTheDocument();
   });
 });
