@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import Button from '@/components/ui/Button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
@@ -20,8 +20,13 @@ function AccessibilityAnalyzerContent() {
   const code = useInputStore((state) => state.code);
   const url = useInputStore((state) => state.url);
   const setUrl = useInputStore((state) => state.setUrl);
-  const { analyze, isLoading, selectedScreenReader, setSelectedScreenReader } = useAnalysisStore();
+  const { analyze, isLoading, resumeAnalysis, selectedScreenReader, setSelectedScreenReader } =
+    useAnalysisStore();
   const { showToast } = useToast();
+
+  useEffect(() => {
+    void resumeAnalysis();
+  }, [resumeAnalysis]);
 
   async function handleAnalysisClick() {
     const input = selectedTab === 'code' ? { htmlContent: code } : { url: url.trim() };

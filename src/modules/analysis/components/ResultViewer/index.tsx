@@ -20,8 +20,11 @@ export default function ResultViewer({ showShareButton = true }: { showShareButt
     error,
     analysisResult,
     pageContent,
-    screenReaderScript,
-    selectedScreenReader,
+    jobAccessToken,
+    jobId,
+    jobStage,
+    elapsedSeconds,
+    isCancelling,
     cancelAnalysis,
     retryAnalysis,
   } = useAnalysisStore();
@@ -52,7 +55,7 @@ export default function ResultViewer({ showShareButton = true }: { showShareButt
   }, [iframeSrc]);
 
   async function handleSaveResult() {
-    if (!analysisResult || !pageContent || !screenReaderScript) {
+    if (!analysisResult || !jobId || !jobAccessToken) {
       showToast({
         message: '분석할 URL 또는 HTML 콘텐츠가 없습니다. 먼저 분석을 수행해주세요.',
         variant: 'alert',
@@ -66,12 +69,7 @@ export default function ResultViewer({ showShareButton = true }: { showShareButt
     setIsSaved(false);
 
     try {
-      const { id } = await saveAnalysis({
-        pageContent,
-        accessibilityAnalysis: analysisResult,
-        screenReaderScript,
-        selectedScreenReader,
-      });
+      const { id } = await saveAnalysis({ jobId }, jobAccessToken);
       const link = `${window.location.origin}/analysis/${id}`;
       setShareableLink(link);
       setIsSaved(true);
@@ -121,13 +119,26 @@ export default function ResultViewer({ showShareButton = true }: { showShareButt
   }
 
   if (isLoading && !analysisResult) {
+    const stageLabels = {
+      queued: '분석 순서를 기다리고 있습니다.',
+      launching_browser: '분석 브라우저를 준비하고 있습니다.',
+      loading_page: '분석할 페이지를 불러오고 있습니다.',
+      analyzing_accessibility: '접근성 문제와 예상 대본을 분석하고 있습니다.',
+      preparing_result: '분석 결과를 정리하고 있습니다.',
+    };
+    const statusMessage = isCancelling
+      ? '분석을 취소하고 있습니다.'
+      : stageLabels[jobStage ?? 'queued'];
+
     return (
       <div
         aria-busy="true"
         aria-live="polite"
         className="relative flex h-[60vh] w-full animate-pulse gap-4"
       >
-        <span className="sr-only">접근성 분석을 진행하고 있습니다.</span>
+        <span className="sr-only">
+          {statusMessage} 경과 시간 {elapsedSeconds}초
+        </span>
         <div className="flex-1 rounded-md border border-gray-300 bg-gray-200 dark:border-gray-700 dark:bg-gray-800"></div>
 
         <div className="w-1/3 space-y-4 rounded-md border border-gray-300 bg-gray-200 p-4 dark:border-gray-700 dark:bg-gray-800">
@@ -146,11 +157,15 @@ export default function ResultViewer({ showShareButton = true }: { showShareButt
           </div>
           <Button
             onClick={cancelAnalysis}
+            disabled={isCancelling}
             variant="outline"
             className="relative z-10 bg-white dark:bg-gray-900"
           >
-            분석 취소
+            {isCancelling ? '취소 중...' : '분석 취소'}
           </Button>
+          <p className="relative z-10 text-sm text-gray-700 dark:text-gray-200">
+            {statusMessage} ({elapsedSeconds}초)
+          </p>
         </div>
       </div>
     );
@@ -182,7 +197,7 @@ export default function ResultViewer({ showShareButton = true }: { showShareButt
       </div>
 
       <div className="w-1/3 overflow-y-auto rounded-md border border-gray-300 p-4 dark:border-gray-700 dark:bg-gray-900">
-        {showShareButton && isLoggedIn && analysisResult && (
+        {showShareButton && isLoggedIn && analysisResult && jobId && jobAccessToken && (
           <div className="mb-4 space-y-2">
             {!isSaved ? (
               <Button

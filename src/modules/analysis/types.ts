@@ -12,7 +12,11 @@ export type ServerAnalysisErrorCode =
   | 'TARGET_SECURITY_BLOCKED'
   | 'TARGET_UNREACHABLE'
   | 'UNSUPPORTED_CONTENT'
-  | 'INTERNAL_ERROR';
+  | 'INTERNAL_ERROR'
+  | 'IDEMPOTENCY_CONFLICT'
+  | 'JOB_EXPIRED'
+  | 'JOB_NOT_FOUND'
+  | 'JOB_NOT_READY';
 
 export type AnalysisErrorCode =
   | ServerAnalysisErrorCode
@@ -44,6 +48,33 @@ export interface AnalysisResponse {
   pageContent: string;
 }
 
+export type AnalysisJobStatus = 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled';
+
+export type AnalysisJobStage =
+  | 'queued'
+  | 'launching_browser'
+  | 'loading_page'
+  | 'analyzing_accessibility'
+  | 'preparing_result';
+
+export interface CreateAnalysisJobResponse {
+  jobId: string;
+  status: AnalysisJobStatus;
+  pollAfterMs: number;
+}
+
+export interface AnalysisJobResponse extends CreateAnalysisJobResponse {
+  stage: AnalysisJobStage;
+  createdAt: string;
+  startedAt: string | null;
+  completedAt: string | null;
+  expiresAt: string;
+  error?: {
+    code: ServerAnalysisErrorCode;
+    message: string;
+  };
+}
+
 export interface AnalysisData {
   analysisResult: AxeResults | null;
   screenReaderScript: ScreenReaderScriptItem[] | null;
@@ -52,10 +83,7 @@ export interface AnalysisData {
 }
 
 export interface SaveAnalysisRequest {
-  pageContent: string;
-  accessibilityAnalysis: AxeResults;
-  screenReaderScript: ScreenReaderScriptItem[];
-  selectedScreenReader: ScreenReaderType;
+  jobId: string;
 }
 
 export interface SaveAnalysisResponse {

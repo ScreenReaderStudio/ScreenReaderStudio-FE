@@ -1,17 +1,27 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { performAnalysis } from '@/modules/analysis/api/analysisApi';
-import { ANALYSIS_TIMEOUT_MS } from '@/modules/analysis/constants';
-import type { AnalysisResponse } from '@/modules/analysis/types';
+import {
+  cancelAnalysisJob,
+  createAnalysisJob,
+  getAnalysisJob,
+  getAnalysisJobResult,
+} from '@/modules/analysis/api/analysisApi';
+import type { AnalysisJobResponse, AnalysisResponse } from '@/modules/analysis/types';
 import { ApiError } from '@/shared/api/client';
 
 import { useAnalysisStore } from './useAnalysisStore';
 
 vi.mock('@/modules/analysis/api/analysisApi', () => ({
-  performAnalysis: vi.fn(),
+  cancelAnalysisJob: vi.fn(),
+  createAnalysisJob: vi.fn(),
+  getAnalysisJob: vi.fn(),
+  getAnalysisJobResult: vi.fn(),
 }));
 
-const mockedPerformAnalysis = vi.mocked(performAnalysis);
+const mockedCancelJob = vi.mocked(cancelAnalysisJob);
+const mockedCreateJob = vi.mocked(createAnalysisJob);
+const mockedGetJob = vi.mocked(getAnalysisJob);
+const mockedGetResult = vi.mocked(getAnalysisJobResult);
 
 const analysisResponse: AnalysisResponse = {
   accessibilityAnalysis: {
@@ -34,55 +44,87 @@ const analysisResponse: AnalysisResponse = {
   pageContent: '<h1>제목</h1>',
 };
 
-function mockPendingRequest() {
-  mockedPerformAnalysis.mockImplementation((_request, signal) => {
-    return new Promise((_resolve, reject) => {
-      signal?.addEventListener('abort', () => {
-        reject(new DOMException('The operation was aborted.', 'AbortError'));
-      });
-    });
+const succeededJob: AnalysisJobResponse = {
+  jobId: '5a35dc9d-b07b-4d31-9d40-d6d6f286f982',
+  status: 'succeeded',
+  stage: 'preparing_result',
+  createdAt: '2026-07-30T00:00:00.000Z',
+  startedAt: '2026-07-30T00:00:01.000Z',
+  completedAt: '2026-07-30T00:00:02.000Z',
+  expiresAt: '2026-07-31T00:00:02.000Z',
+  pollAfterMs: 1,
+};
+
+function mockSuccessfulJob() {
+  mockedCreateJob.mockResolvedValue({
+    jobId: succeededJob.jobId,
+    status: 'queued',
+    pollAfterMs: 1,
   });
+  mockedGetJob.mockResolvedValue(succeededJob);
+  mockedGetResult.mockResolvedValue(analysisResponse);
 }
 
 describe('useAnalysisStore', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useRealTimers();
-    useAnalysisStore.getState().cancelAnalysis();
+    sessionStorage.clear();
     useAnalysisStore.setState({
       analysisResult: null,
       screenReaderScript: null,
       pageContent: null,
       isLoading: false,
+      isCancelling: false,
       error: null,
       lastRequest: null,
+      jobId: null,
+      jobAccessToken: null,
+      jobStatus: null,
+      jobStage: null,
+      elapsedSeconds: 0,
       selectedScreenReader: 'voiceover',
     });
   });
 
-  it('분석 성공 결과를 저장한다', async () => {
-    mockedPerformAnalysis.mockResolvedValue(analysisResponse);
+  it('작업을 생성하고 polling 완료 결과를 저장한다', async () => {
+    mockSuccessfulJob();
 
     await useAnalysisStore.getState().analyze({ url: 'https://example.com' });
 
-    expect(mockedPerformAnalysis).toHaveBeenCalledWith(
+    expect(mockedCreateJob).toHaveBeenCalledWith(
+      { url: 'https://example.com', screenReader: 'voiceover' },
       {
-        url: 'https://example.com',
-        screenReader: 'voiceover',
+        accessToken: expect.stringMatching(/^[\w-]{43}$/),
+        idempotencyKey: expect.stringMatching(/^[\w-]{43}$/),
       },
+      expect.any(AbortSignal)
+    );
+    expect(mockedGetJob).toHaveBeenCalledWith(
+      succeededJob.jobId,
+      expect.any(String),
       expect.any(AbortSignal)
     );
     expect(useAnalysisStore.getState()).toMatchObject({
       analysisResult: analysisResponse.accessibilityAnalysis,
-      screenReaderScript: analysisResponse.screenReaderScript,
       pageContent: analysisResponse.pageContent,
       isLoading: false,
       error: null,
+      jobStatus: 'succeeded',
     });
   });
 
-  it('504 응답을 재시도 가능한 타임아웃 오류로 변환한다', async () => {
-    mockedPerformAnalysis.mockRejectedValue(new ApiError('Gateway timeout', 504));
+  it('실패한 작업의 서버 오류 코드를 사용자 오류로 변환한다', async () => {
+    mockedCreateJob.mockResolvedValue({
+      jobId: succeededJob.jobId,
+      status: 'queued',
+      pollAfterMs: 1,
+    });
+    mockedGetJob.mockResolvedValue({
+      ...succeededJob,
+      status: 'failed',
+      error: { code: 'ANALYSIS_TIMEOUT', message: '시간 초과' },
+    });
 
     await useAnalysisStore.getState().analyze({ url: 'https://example.com' });
 
@@ -92,59 +134,86 @@ describe('useAnalysisStore', () => {
     });
   });
 
-  it('fetch TypeError를 네트워크 오류로 변환한다', async () => {
-    mockedPerformAnalysis.mockRejectedValue(new TypeError('Failed to fetch'));
+  it('작업 생성 네트워크 오류를 분류한다', async () => {
+    vi.useFakeTimers();
+    mockedCreateJob.mockRejectedValue(new TypeError('Failed to fetch'));
 
-    await useAnalysisStore.getState().analyze({ url: 'https://example.com' });
+    const analysisPromise = useAnalysisStore.getState().analyze({ url: 'https://example.com' });
+    await vi.runAllTimersAsync();
+    await analysisPromise;
 
+    expect(mockedCreateJob).toHaveBeenCalledTimes(4);
     expect(useAnalysisStore.getState().error).toMatchObject({
       code: 'NETWORK_ERROR',
       retryable: true,
     });
   });
 
-  it('마지막 요청으로 분석을 재시도한다', async () => {
-    mockedPerformAnalysis
-      .mockRejectedValueOnce(new ApiError('Server error', 500))
-      .mockResolvedValueOnce(analysisResponse);
-
+  it('명시적 재시도는 새 작업을 생성한다', async () => {
+    mockedCreateJob.mockRejectedValueOnce(new ApiError('Server error', 500));
     await useAnalysisStore.getState().analyze({ htmlContent: '<h1>제목</h1>' });
+
+    mockSuccessfulJob();
     await useAnalysisStore.getState().retryAnalysis();
 
-    expect(mockedPerformAnalysis).toHaveBeenCalledTimes(2);
-    expect(mockedPerformAnalysis.mock.calls[1][0]).toEqual({
+    expect(mockedCreateJob).toHaveBeenCalledTimes(2);
+    expect(mockedCreateJob.mock.calls[1][0]).toEqual({
       htmlContent: '<h1>제목</h1>',
       screenReader: 'voiceover',
     });
     expect(useAnalysisStore.getState().analysisResult).toBe(analysisResponse.accessibilityAnalysis);
   });
 
-  it('사용자가 진행 중인 분석을 취소할 수 있다', async () => {
-    mockPendingRequest();
+  it('진행 중인 작업에 서버 취소를 요청한다', async () => {
+    vi.useFakeTimers();
+    mockedCreateJob.mockResolvedValue({
+      jobId: succeededJob.jobId,
+      status: 'queued',
+      pollAfterMs: 1_000,
+    });
+    mockedCancelJob.mockResolvedValue({
+      ...succeededJob,
+      status: 'running',
+    });
+    mockedGetJob.mockResolvedValue({ ...succeededJob, status: 'cancelled' });
 
     const analysisPromise = useAnalysisStore.getState().analyze({ url: 'https://example.com' });
-    useAnalysisStore.getState().cancelAnalysis();
+    await vi.advanceTimersByTimeAsync(0);
+    await useAnalysisStore.getState().cancelAnalysis();
+    await vi.advanceTimersByTimeAsync(1_000);
     await analysisPromise;
 
+    expect(mockedCancelJob).toHaveBeenCalledWith(succeededJob.jobId, expect.any(String));
     expect(useAnalysisStore.getState().error).toMatchObject({
       code: 'ANALYSIS_CANCELLED',
       retryable: true,
     });
-    expect(useAnalysisStore.getState().isLoading).toBe(false);
   });
 
-  it('프론트 제한 시간을 넘기면 분석 요청을 중단한다', async () => {
-    vi.useFakeTimers();
-    mockPendingRequest();
+  it('sessionStorage의 작업을 새로고침 후 복구한다', async () => {
+    sessionStorage.setItem(
+      'screen-reader-studio:analysis-job',
+      JSON.stringify({
+        accessToken: 'a'.repeat(43),
+        createdAt: '2026-07-30T00:00:00.000Z',
+        jobId: succeededJob.jobId,
+        selectedScreenReader: 'nvda',
+      })
+    );
+    mockedGetJob.mockResolvedValue(succeededJob);
+    mockedGetResult.mockResolvedValue(analysisResponse);
 
-    const analysisPromise = useAnalysisStore.getState().analyze({ url: 'https://example.com' });
-    await vi.advanceTimersByTimeAsync(ANALYSIS_TIMEOUT_MS);
-    await analysisPromise;
+    await useAnalysisStore.getState().resumeAnalysis();
 
-    expect(useAnalysisStore.getState().error).toMatchObject({
-      code: 'ANALYSIS_TIMEOUT',
-      retryable: true,
+    expect(mockedGetJob).toHaveBeenCalledWith(
+      succeededJob.jobId,
+      'a'.repeat(43),
+      expect.any(AbortSignal)
+    );
+    expect(useAnalysisStore.getState()).toMatchObject({
+      analysisResult: analysisResponse.accessibilityAnalysis,
+      selectedScreenReader: 'nvda',
     });
-    expect(useAnalysisStore.getState().isLoading).toBe(false);
+    expect(sessionStorage.getItem('screen-reader-studio:analysis-job')).toBeNull();
   });
 });

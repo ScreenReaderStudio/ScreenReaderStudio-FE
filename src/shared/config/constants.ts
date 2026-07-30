@@ -21,7 +21,7 @@ export const ANALYSIS_STATUS = {
 export const API_ENDPOINTS = {
   USERS_ME: '/api/users/me',
   AUTH_LOGOUT: '/api/auth/logout',
-  ANALYSIS_PERFORM: '/api/analysis/perform',
+  ANALYSIS_JOBS: '/api/analysis/jobs',
   ANALYSIS_SAVE: '/api/analysis',
 } as const;
 

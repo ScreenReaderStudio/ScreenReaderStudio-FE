@@ -58,6 +58,26 @@ const serverErrorPresentations: Record<ServerAnalysisErrorCode, ErrorPresentatio
     recoveryMessage: '잠시 후 다시 시도해주세요. 문제가 계속되면 관리자에게 알려주세요.',
     retryable: true,
   },
+  IDEMPOTENCY_CONFLICT: {
+    message: '분석 요청을 안전하게 다시 시작하지 못했습니다.',
+    recoveryMessage: '분석 버튼을 다시 눌러 새 작업을 시작해주세요.',
+    retryable: true,
+  },
+  JOB_EXPIRED: {
+    message: '분석 결과의 보관 기간이 만료되었습니다.',
+    recoveryMessage: '분석 대상을 다시 제출해주세요.',
+    retryable: true,
+  },
+  JOB_NOT_FOUND: {
+    message: '진행 중이던 분석 작업을 찾을 수 없습니다.',
+    recoveryMessage: '분석 대상을 다시 제출해주세요.',
+    retryable: true,
+  },
+  JOB_NOT_READY: {
+    message: '분석 결과가 아직 준비되지 않았습니다.',
+    recoveryMessage: '잠시 후 다시 시도해주세요.',
+    retryable: true,
+  },
 };
 
 const serverAnalysisErrorCodes = new Set<string>(Object.keys(serverErrorPresentations));
