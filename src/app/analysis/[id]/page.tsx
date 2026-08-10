@@ -3,6 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
+import DesktopOnly from '@/components/layout/DesktopOnly';
 import Header from '@/components/layout/Header';
 import { getSharedAnalysis } from '@/modules/analysis/api/analysisApi';
 import ResultViewer from '@/modules/analysis/components/ResultViewer';
@@ -56,22 +57,26 @@ export default function SharedAnalysisPage() {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center text-gray-900 dark:text-gray-100">
-        결과를 불러오는 중...
-      </div>
+      <DesktopOnly>
+        <div className="flex h-screen items-center justify-center text-gray-900 dark:text-gray-100">
+          결과를 불러오는 중...
+        </div>
+      </DesktopOnly>
     );
   }
 
   if (error) {
     return (
-      <div className="flex h-screen items-center justify-center text-red-500 dark:text-red-400">
-        오류: {error}
-      </div>
+      <DesktopOnly>
+        <div className="flex h-screen items-center justify-center text-red-500 dark:text-red-400">
+          오류: {error}
+        </div>
+      </DesktopOnly>
     );
   }
 
   return (
-    <>
+    <DesktopOnly>
       <Header />
       <div className="p-6">
         <h1 className="mb-3 text-2xl font-bold text-gray-900 dark:text-gray-100">
@@ -83,6 +88,6 @@ export default function SharedAnalysisPage() {
         </p>
         <ResultViewer showShareButton={false} />
       </div>
-    </>
+    </DesktopOnly>
   );
 }

@@ -1,6 +1,5 @@
 import localFont from 'next/font/local';
 
-import UnsupportedDevice from '@/components/layout/UnsupportedDevice';
 import { AuthProvider } from '@/modules/auth/AuthProvider';
 import { ToastProvider } from '@/providers/ToastProvider';
 
@@ -27,16 +26,11 @@ export default function RootLayout({
   return (
     <html lang="ko" className={`${pretendard.variable}`}>
       <body className={`${pretendard.className} min-h-dvh w-full`}>
-        <div className="hidden md:block">
-          <AuthProvider>
-            <ToastProvider>
-              <main>{children}</main>
-            </ToastProvider>
-          </AuthProvider>
-        </div>
-        <div className="block md:hidden">
-          <UnsupportedDevice />
-        </div>
+        <AuthProvider>
+          <ToastProvider>
+            <main>{children}</main>
+          </ToastProvider>
+        </AuthProvider>
       </body>
     </html>
   );
