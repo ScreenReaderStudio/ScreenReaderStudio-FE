@@ -10,6 +10,11 @@ import { useToast } from '@/providers/ToastProvider';
 import AnalysisErrorState from './AnalysisErrorState';
 import IssuesList from './IssuesList';
 import Placeholder from './Placeholder';
+import {
+  createSafePreviewDocument,
+  postHighlightMessage as postHighlightMessageToPreview,
+  PREVIEW_SANDBOX,
+} from './previewDocument';
 import ScreenReaderScript from './ScreenReaderScript';
 import { saveAnalysis } from '../../api/analysisApi';
 import { useAnalysisStore } from '../../model/useAnalysisStore';
@@ -37,11 +42,12 @@ export default function ResultViewer({ showShareButton = true }: { showShareButt
   const { showToast } = useToast();
 
   const iframeSrc = useMemo(() => {
-    if (!pageContent) {
+    if (!pageContent || typeof window === 'undefined') {
       return undefined;
     }
 
-    const blob = new Blob([pageContent], { type: 'text/html' });
+    const previewDocument = createSafePreviewDocument(pageContent, window.location.origin);
+    const blob = new Blob([previewDocument], { type: 'text/html;charset=utf-8' });
 
     return URL.createObjectURL(blob);
   }, [pageContent]);
@@ -98,12 +104,7 @@ export default function ResultViewer({ showShareButton = true }: { showShareButt
   }
 
   function postHighlightMessage(selector: string) {
-    if (iframeRef.current?.contentWindow) {
-      iframeRef.current.contentWindow.postMessage(
-        { type: 'highlight', selector },
-        window.location.origin
-      );
-    }
+    postHighlightMessageToPreview(iframeRef.current?.contentWindow ?? null, selector);
   }
 
   function handleHighlightAndSpeak(selector: string, textToSpeak: string) {
@@ -186,6 +187,8 @@ export default function ResultViewer({ showShareButton = true }: { showShareButt
           <iframe
             ref={iframeRef}
             src={iframeSrc}
+            sandbox={PREVIEW_SANDBOX}
+            referrerPolicy="no-referrer"
             title="분석 결과 화면"
             className="h-full w-full border-0"
           />
